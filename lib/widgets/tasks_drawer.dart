@@ -1,48 +1,82 @@
+// import 'package:bloc_finals_exam/cubit/theme_cubit.dart';
 import 'package:bloc_finals_exam/blocs/tasks/bloc/tasks_bloc.dart';
 import 'package:bloc_finals_exam/blocs/theme/bloc/theme_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:path_provider/path_provider.dart';
 
-import 'app_router.dart';
-import 'app_themes.dart';
-import 'screens/tabs_screen.dart';
+import '../screens/recycle_bin_screen.dart';
+import '../screens/tabs_screen.dart';
+import '../test_data.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final storage = await HydratedStorage.build(
-      storageDirectory: await getApplicationDocumentsDirectory());
+class TasksDrawer extends StatelessWidget {
+  const TasksDrawer({Key? key}) : super(key: key);
 
-  HydratedBlocOverrides.runZoned(() => runApp(MyApp(appRouter: AppRouter())),
-      storage: storage);
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key, required this.appRouter}) : super(key: key);
-
-  final AppRouter appRouter;
+  _switchToDarkTheme(BuildContext context, bool isDarkTheme) {
+    context.read<ThemeBloc>().add(ToggleTheme(isDarkTheme: isDarkTheme));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => TasksBloc()),
-        BlocProvider(create: (context) => ThemeBloc())
-      ],
-      child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, state) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'BloC Tasks App',
-            theme: state.isDarkTheme
-                ? AppThemes.appThemeData[AppTheme.darkMode]
-                : AppThemes.appThemeData[AppTheme.lightMode],
-            home: const TabsScreen(),
-            onGenerateRoute: appRouter.onGenerateRoute,
-          );
-        },
-      ),
+    return BlocBuilder<TasksBloc, TasksState>(
+      builder: (context, state) {
+        return SafeArea(
+          child: Drawer(
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                  child: Text(
+                    'Task Drawer',
+                    style: Theme.of(context).textTheme.headline5,
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.folder_special),
+                  title: const Text('My Tasks'),
+                  trailing: Text(
+                    '${state.tasksList.length} | ${state.completedTasks.length}',
+                  ),
+                  onTap: () => Navigator.pushReplacementNamed(
+                    context,
+                    TabsScreen.path,
+                  ),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.delete),
+                  title: const Text('Recycle Bin'),
+                  trailing: Text('${state.deletedTasks.length}'),
+                  onTap: () => Navigator.pushReplacementNamed(
+                    context,
+                    RecycleBinScreen.path,
+                  ),
+                ),
+                const Divider(),
+                const Expanded(child: SizedBox()),
+                BlocBuilder<ThemeBloc, ThemeState>(
+                  builder: (context, state) {
+                    return ListTile(
+                      leading: Switch(
+                        value: state.isDarkTheme,
+                        onChanged: (newValue) =>
+                            _switchToDarkTheme(context, newValue),
+                      ),
+                      title: Text(state.isDarkTheme
+                          ? 'Switch to Light Theme'
+                          : 'Switch to Dark Theme'),
+                      onTap: () =>
+                          _switchToDarkTheme(context, !state.isDarkTheme),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
