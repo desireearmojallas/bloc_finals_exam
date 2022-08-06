@@ -2,8 +2,6 @@ import 'package:bloc_finals_exam/blocs/tasks/bloc/tasks_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../models/task.dart';
-import '../test_data.dart';
 import '../widgets/tasks_list.dart';
 
 class CompletedTasksScreen extends StatelessWidget {
